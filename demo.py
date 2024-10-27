@@ -14,6 +14,7 @@ from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
+    FriendliChatCompletionSampler
 )
 from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
@@ -24,34 +25,42 @@ def main():
     debug = True
     samplers = {
         # chatgpt models:
-        "o1-preview": O1ChatCompletionSampler(
-            model="o1-preview",
-        ),
-        "o1-mini": O1ChatCompletionSampler(
-            model="o1-mini",
-        ),
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-        ),
-        "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # "o1-preview": O1ChatCompletionSampler(
+        #     model="o1-preview",
+        # ),
+        # "o1-mini": O1ChatCompletionSampler(
+        #     model="o1-mini",
+        # ),
+        # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # ),
+        # "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        # ),
+        # "gpt-4o_assistant": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
+        #     model="gpt-4o-mini-2024-07-18",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
+        "friendli-llama-3.1-70b-instruct": FriendliChatCompletionSampler(
+            model="meta-llama-3.1-70b-instruct",
             max_tokens=2048,
         ),
-        "gpt-4o_chatgpt": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-            max_tokens=2048,
-        ),
-        "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
-            model="gpt-4o-mini-2024-07-18",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
+        "friendli-llama-3.1-8b-instruct": FriendliChatCompletionSampler(
+            model="meta-llama-3.1-8b-instruct",
+            max_tokens=2048
         ),
         # claude models:
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
@@ -59,7 +68,7 @@ def main():
         # ),
     }
 
-    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+    # equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name):
@@ -67,10 +76,10 @@ def main():
         match eval_name:
             case "mmlu":
                 return MMLUEval(num_examples=1 if debug else 2500)
-            case "math":
-                return MathEval(
-                    equality_checker=equality_checker, num_examples=5 if debug else 2500
-                )
+            # case "math":
+            #     return MathEval(
+            #         equality_checker=equality_checker, num_examples=5 if debug else 2500
+            #     )
             case "gpqa":
                 return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
             case "mgsm":
@@ -83,7 +92,7 @@ def main():
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "math", "gpqa", "mgsm", "drop"]
+        eval_name: get_evals(eval_name) for eval_name in ["gpqa"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if debug else ""

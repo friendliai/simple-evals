@@ -23,7 +23,7 @@ class GPQAEval(Eval):
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
         df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
+            f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:

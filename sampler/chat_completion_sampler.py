@@ -1,10 +1,11 @@
 import base64
 import time
 from typing import Any
+import os
 
 import openai
 from openai import OpenAI
-
+from friendli import Friendli
 from ..types import MessageList, SamplerBase
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
@@ -78,3 +79,23 @@ class ChatCompletionSampler(SamplerBase):
                 time.sleep(exception_backoff)
                 trial += 1
             # unknown error shall throw exception
+
+class FriendliChatCompletionSampler(ChatCompletionSampler):
+    """
+    Sample from OpenAI's chat completion API
+    """
+
+    def __init__(
+        self,
+        model: str = "meta-llama-3.1-8b-instruct",
+        system_message: str | None = None,
+        temperature: float = 0.5,
+        max_tokens: int = 1024,
+    ):
+        api_key=os.environ.get("FRIENDLI_PERSONAL_ACCESS_TOKEN")  # please set your API_KEY
+        self.client = Friendli(token=api_key)
+        self.model = model
+        self.system_message = system_message
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.image_format = "url"
