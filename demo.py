@@ -22,53 +22,58 @@ from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
 
 def main():
-    debug = True
+    debug = False
     samplers = {
-        # chatgpt models:
-        # "o1-preview": O1ChatCompletionSampler(
-        #     model="o1-preview",
-        # ),
-        # "o1-mini": O1ChatCompletionSampler(
-        #     model="o1-mini",
-        # ),
-        # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-        #     model="gpt-4-turbo-2024-04-09",
-        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
-        # ),
-        # "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-        #     model="gpt-4-turbo-2024-04-09",
-        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        # ),
-        # "gpt-4o_assistant": ChatCompletionSampler(
-        #     model="gpt-4o",
-        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # "friendli-llama-3.1-70b-instruct_bf16-no-persist": FriendliChatCompletionSampler(
+        #     base_url="http://gpu03:7002",
+        #     model="meta-llama-3.1-70b-instruct",
         #     max_tokens=2048,
+        #     temperature=0.0,
         # ),
-        # "gpt-4o_chatgpt": ChatCompletionSampler(
-        #     model="gpt-4o",
-        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        #     max_tokens=2048,
-        # ),
-        # "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
-        #     model="gpt-4o-mini-2024-07-18",
-        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
-        #     max_tokens=2048,
-        # ),
-        "friendli-llama-3.1-70b-instruct": FriendliChatCompletionSampler(
+        "friendli-llama-3.1-70b-instruct-fp8-4096": FriendliChatCompletionSampler(
+            base_url="http://0.0.0.0:7003",
             model="meta-llama-3.1-70b-instruct",
             max_tokens=2048,
+            temperature=0.0,
         ),
-        "friendli-llama-3.1-8b-instruct": FriendliChatCompletionSampler(
-            model="meta-llama-3.1-8b-instruct",
-            max_tokens=2048
-        ),
-        # claude models:
-        # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
-        #     model="claude-3-opus-20240229", system_message=None,
+        # "severless-llama-3.1-70b-instruct-fp8": FriendliChatCompletionSampler(
+        #     model="meta-llama-3.1-70b-instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
         # ),
+        # "vllm_llama_3.1_70b_instruct_bf16": ChatCompletionSampler(
+        #     base_url="http://0.0.0.0:7001",
+        #     model="meta-llama/Meta-Llama-3.1-70B-Instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
+        # ),
+        # "friendli-llama-3.1-8b-instruct_fp8_4096": FriendliChatCompletionSampler(
+        #     base_url="http://0.0.0.0:7002",
+        #     model="meta-llama-3.1-8b-instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
+        # ),
+        # "friendli-llama-3.1-8b-instruct_fp8": FriendliChatCompletionSampler(
+        #     base_url="http://0.0.0.0:7001",
+        #     model="meta-llama-3.1-8b-instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
+        # ),
+        # "friendli-llama-3.1-8b-instruct_fp8-no-persist": FriendliChatCompletionSampler(
+        #     base_url="http://0.0.0.0:7002",
+        #     model="meta-llama-3.1-8b-instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
+        # ),
+        # "vllm_llama_3.1_8b_instruct_bf16": ChatCompletionSampler(
+        #     base_url="http://0.0.0.0:7004",
+        #     model="meta-llama/Meta-Llama-3.1-8B-Instruct",
+        #     max_tokens=2048,
+        #     temperature=0.0,
+        # )
     }
-
-    # equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+    print(samplers)
+    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name):
@@ -76,10 +81,10 @@ def main():
         match eval_name:
             case "mmlu":
                 return MMLUEval(num_examples=1 if debug else 2500)
-            # case "math":
-            #     return MathEval(
-            #         equality_checker=equality_checker, num_examples=5 if debug else 2500
-            #     )
+            case "math":
+                return MathEval(
+                    equality_checker=equality_checker, num_examples=5 if debug else 2500
+                )
             case "gpqa":
                 return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
             case "mgsm":
@@ -92,7 +97,7 @@ def main():
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["gpqa"]
+        eval_name: get_evals(eval_name) for eval_name in ["humaneval", "gpqa"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if debug else ""

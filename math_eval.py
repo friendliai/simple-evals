@@ -29,11 +29,11 @@ class MathEval(Eval):
         self,
         equality_checker: SamplerBase,
         num_examples: int | None = None,
-        n_repeats: int = 16,
+        n_repeats: int = 1,
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
         df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
+            "/home/ubuntu/fai-test-us-south-3/seungah/workspace/simple-evals/math_test.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:

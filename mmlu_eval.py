@@ -7,6 +7,8 @@ https://arxiv.org/abs/2009.03300
 import random
 import re
 
+from sympy import E
+
 import blobfile as bf
 import pandas
 
@@ -85,10 +87,10 @@ subject2category = {
 class MMLUEval(Eval):
     def __init__(self, num_examples: int | None = None, language: str = "EN-US"):
         if language != "EN-US":
-            url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
+            raise NotImplementedError()
         else:
-            url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
-        df = pandas.read_csv(bf.BlobFile(url))
+            url = "/home/ubuntu/fai-test-us-south-3/seungah/workspace/simple-evals/mmlu.csv"
+        df = pandas.read_csv(url)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)

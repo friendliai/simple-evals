@@ -22,19 +22,23 @@ class ChatCompletionSampler(SamplerBase):
 
     def __init__(
         self,
+        base_url: str | None = None,
         model: str = "gpt-3.5-turbo",
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
+        self.client = OpenAI(base_url=f"{base_url}/v1", api_key="token-abc123")
         # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.image_format = "url"
+
+    def __repr__(self):
+        return f"model={self.model}, base_url={self.client._base_url}, temperature={self.temperature}, max_tokens={self.max_tokens}"
 
     def _handle_image(
         self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
@@ -80,6 +84,7 @@ class ChatCompletionSampler(SamplerBase):
                 trial += 1
             # unknown error shall throw exception
 
+
 class FriendliChatCompletionSampler(ChatCompletionSampler):
     """
     Sample from OpenAI's chat completion API
@@ -87,13 +92,14 @@ class FriendliChatCompletionSampler(ChatCompletionSampler):
 
     def __init__(
         self,
+        base_url: str | None = None,
         model: str = "meta-llama-3.1-8b-instruct",
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
         api_key=os.environ.get("FRIENDLI_PERSONAL_ACCESS_TOKEN")  # please set your API_KEY
-        self.client = Friendli(token=api_key)
+        self.client = Friendli(base_url=base_url, token=api_key)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
