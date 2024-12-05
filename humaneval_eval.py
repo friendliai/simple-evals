@@ -4,9 +4,7 @@ Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan and Henrique Ponde de 
 https://arxiv.org/abs/2107.03374 https://github.com/openai/human-eval/
 """
 
-import json
-import logging
-import multiprocessing
+import os
 import random
 import re
 from collections import Counter, defaultdict
@@ -61,7 +59,7 @@ class HumanEval(Eval):
         timeout: int = 120,
     ):
         self.seed = 0
-        self.examples = read_problems("HumanEval.jsonl.gz")
+        self.examples = read_problems(f"{os.getcwd()}/simple-evals/dataset/HumanEval.jsonl.gz")
         self.examples = list(self.examples.values())
 
         self._num_examples = num_examples

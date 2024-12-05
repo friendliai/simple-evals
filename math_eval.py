@@ -6,6 +6,7 @@ https://arxiv.org/abs/2103.03874
 
 import random
 import re
+import os
 from typing import Literal
 
 import blobfile as bf
@@ -33,7 +34,7 @@ class MathEval(Eval):
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
         df = pandas.read_csv(
-            "/home/ubuntu/fai-test-us-south-3/seungah/workspace/simple-evals/math_test.csv"
+            f"{os.getcwd()}/simple-evals/dataset/math_test.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:

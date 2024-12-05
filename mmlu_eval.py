@@ -6,10 +6,9 @@ https://arxiv.org/abs/2009.03300
 
 import random
 import re
-
+import os
 from sympy import E
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -89,7 +88,7 @@ class MMLUEval(Eval):
         if language != "EN-US":
             raise NotImplementedError()
         else:
-            url = "/home/ubuntu/fai-test-us-south-3/seungah/workspace/simple-evals/mmlu.csv"
+            url = f"{os.getcwd()}/simple-evals/dataset/mmlu.csv"
         df = pandas.read_csv(url)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
