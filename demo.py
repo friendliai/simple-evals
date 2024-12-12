@@ -20,7 +20,7 @@ from .sampler.chat_completion_sampler import (
 def main(exp_name, req_url, res_dir):
     debug = False
     samplers = {
-        "friendli-llama-3.1-8b-instruct-fp8-use-w4a8": FriendliChatCompletionSampler(
+        exp_name: FriendliChatCompletionSampler(
             base_url=req_url,
             model="meta-llama-3.1-8b-instruct",
             max_tokens=2048,
