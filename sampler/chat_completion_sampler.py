@@ -93,13 +93,14 @@ class FriendliChatCompletionSampler(ChatCompletionSampler):
     def __init__(
         self,
         base_url: str | None = None,
-        model: str = "meta-llama-3.1-8b-instruct",
+        model: str | None = "friendli_model",
+        endpoint_id: str = None,
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
-        api_key=os.environ.get("FRIENDLI_PERSONAL_ACCESS_TOKEN")  # please set your API_KEY
-        self.client = Friendli(base_url=base_url, token=api_key)
+        api_key=os.environ.get("FRIENDLI_TOKEN")
+        self.client = Friendli(base_url=base_url, token=api_key, endpoint_id=endpoint_id)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature

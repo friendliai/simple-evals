@@ -17,14 +17,14 @@ from .sampler.chat_completion_sampler import (
 # from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
 
-def main(exp_name, req_url, res_dir):
+def main(exp_name, req_url, res_dir, endpoint_id:str = None):
     debug = False
     samplers = {
         exp_name: FriendliChatCompletionSampler(
             base_url=req_url,
-            model="meta-llama-3.1-8b-instruct",
             max_tokens=2048,
             temperature=0.0,
+            endpoint_id=endpoint_id
         )
     }
     print(samplers)
@@ -97,5 +97,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     exp_name = args[0]
     req_url = args[1]
+    print(f"Use endpoint url: {req_url}.")
     res_out_dir = args[2]
-    main(exp_name, req_url, res_out_dir)
+    if len(args) == 4:
+        endpoint_id = args[3]
+        print(f"Use endpoint_id: {endpoint_id}.")
+    main(exp_name, req_url, res_out_dir, endpoint_id)
