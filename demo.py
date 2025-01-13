@@ -24,7 +24,7 @@ def main(exp_name, req_url, res_dir, endpoint_id:str = None):
             base_url=req_url,
             max_tokens=2048,
             temperature=0.0,
-            endpoint_id=endpoint_id
+            model=endpoint_id
         )
     }
     print(samplers)

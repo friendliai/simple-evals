@@ -94,13 +94,12 @@ class FriendliChatCompletionSampler(ChatCompletionSampler):
         self,
         base_url: str | None = None,
         model: str | None = "friendli_model",
-        endpoint_id: str = None,
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
         api_key=os.environ.get("FRIENDLI_TOKEN")
-        self.client = Friendli(base_url=base_url, token=api_key, endpoint_id=endpoint_id)
+        self.client = OpenAI(base_url=base_url, api_key=api_key)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
