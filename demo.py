@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 import pandas as pd
 
 from . import common
@@ -98,5 +99,6 @@ if __name__ == "__main__":
     exp_name = args[0]
     req_url = args[1]
     res_out_dir = args[2]
+    os.makedirs(res_out_dir, exist_ok=True)
     model = args[3] if len(args) == 4 else None
     main(exp_name, req_url, res_out_dir, model)
