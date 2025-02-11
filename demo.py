@@ -12,7 +12,6 @@ from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
 from .sampler.chat_completion_sampler import (
     ChatCompletionSampler,
-    FriendliChatCompletionSampler
 )
 
 # from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
@@ -21,11 +20,11 @@ from .sampler.chat_completion_sampler import (
 def main(exp_name, req_url, res_dir, model = None):
     debug = False
     samplers = {
-        exp_name: FriendliChatCompletionSampler(
+        exp_name: ChatCompletionSampler(
             base_url=req_url,
             model=model,
-            max_tokens=2048,
-            temperature=0.0,
+            max_tokens=32768,
+            temperature=0.6,
         )
     }
     print(samplers)
@@ -39,7 +38,7 @@ def main(exp_name, req_url, res_dir, model = None):
                 return MMLUEval(num_examples=1 if debug else 2500)
             case "math":
                 return MathEval(
-                    equality_checker=equality_checker, num_examples=5 if debug else 2500
+                    equality_checker=equality_checker, num_examples=5 if debug else 2500, split="math_500_test"
                 )
             case "gpqa":
                 return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
@@ -53,7 +52,7 @@ def main(exp_name, req_url, res_dir, model = None):
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "gpqa", "humaneval"]
+        eval_name: get_evals(eval_name) for eval_name in ["math", "gpqa"]
     }
     debug_suffix = "_DEBUG" if debug else ""
     mergekey2resultpath = {}
