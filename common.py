@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
+from tokenize import Single
 from typing import Any
 from typing import Any, Callable, List
 
@@ -203,7 +204,7 @@ def aggregate_results(
     )
 
 
-def map_with_progress(f: Callable[[Any], Any], xs: List[Any], num_threads: int = 198, cache_file: str = "cache.pkl"):
+def map_with_progress(f: Callable[[Any], SingleEvalResult], xs: List[Any], num_threads: int = 198, cache_file: str = "cache.pkl"):
     """
     Apply f to each element of xs, using a ThreadPool, and show progress.
     Cache processed indices to avoid reprocessing.
@@ -227,9 +228,9 @@ def map_with_progress(f: Callable[[Any], Any], xs: List[Any], num_threads: int =
                 processed_indices.add(i)
         else:
             with ThreadPool(min(num_threads, len(remaining_indices))) as pool:
-                for i, result in zip(remaining_indices, tqdm(pool.imap_unordered(f, [xs[i] for i in remaining_indices]), total=len(remaining_indices))):
+                for i, result in enumerate(tqdm(pool.imap_unordered(f, [xs[i] for i in remaining_indices]), total=len(remaining_indices))):
                     results[i] = result
-                    processed_indices.add(i)
+                    processed_indices.add(result.idx)
     except KeyboardInterrupt:
         print("\nProcess interrupted. Returning collected results.")
         print(results)

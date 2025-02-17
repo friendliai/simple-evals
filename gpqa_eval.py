@@ -47,7 +47,7 @@ class GPQAEval(Eval):
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         def fn(indexed_row: tuple):
-            i, row = indexed_row
+            idx, row = indexed_row
             choices = [
                 row["Correct Answer"],
                 row["Incorrect Answer 1"],
@@ -78,7 +78,7 @@ class GPQAEval(Eval):
             )
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(
-                html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
+                idx=idx, html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
 
         results = common.map_with_progress(fn, list(enumerate(self.examples)), cache_file=self.tmp_path)

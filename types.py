@@ -33,6 +33,7 @@ class SingleEvalResult:
     Result of evaluating a single sample
     """
 
+    idx: int | None = None
     score: float | None
     metrics: dict[str, float] = field(default_factory=dict)
     html: str | None = None
