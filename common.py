@@ -2,7 +2,9 @@ import os
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 from typing import Any
+from typing import Any, Callable, List
 
+import pickle
 import jinja2
 import numpy as np
 from tqdm import tqdm
@@ -182,6 +184,8 @@ def aggregate_results(
     htmls = []
     convos = []
     for single_eval_result in single_eval_results:
+        if single_eval_result == None:
+            continue
         for name, value in single_eval_result.metrics.items():
             name2values[name].append(value)
         if single_eval_result.score is not None:
@@ -199,15 +203,44 @@ def aggregate_results(
     )
 
 
-def map_with_progress(f: callable, xs: list[Any], num_threads: int = 50):
+def map_with_progress(f: Callable[[Any], Any], xs: List[Any], num_threads: int = 198, cache_file: str = "cache.pkl"):
     """
     Apply f to each element of xs, using a ThreadPool, and show progress.
+    Cache processed indices to avoid reprocessing.
     """
-    if os.getenv("debug"):
-        return list(map(f, tqdm(xs, total=len(xs))))
-    else:
-        with ThreadPool(min(num_threads, len(xs))) as pool:
-            return list(tqdm(pool.imap(f, xs), total=len(xs)))
+    results = [None] * len(xs)
+    processed_indices = set()
+
+    # Load cache if it exists
+    if os.path.exists(cache_file):
+        with open(cache_file, "rb") as f_cache:
+            cache_data = pickle.load(f_cache)
+            results, processed_indices = cache_data.get("results", results), cache_data.get("indices", set())
+
+    remaining_indices = [i for i in range(len(xs)) if i not in processed_indices]
+    print(f"Find cached {len(processed_indices)} results from `{cache_file}`, Only run {len(remaining_indices)} samples.")
+
+    try:
+        if os.getenv("debug"):
+            for i in tqdm(remaining_indices, total=len(remaining_indices)):
+                results[i] = f(xs[i])
+                processed_indices.add(i)
+        else:
+            with ThreadPool(min(num_threads, len(remaining_indices))) as pool:
+                for i, result in zip(remaining_indices, tqdm(pool.imap_unordered(f, [xs[i] for i in remaining_indices]), total=len(remaining_indices))):
+                    results[i] = result
+                    processed_indices.add(i)
+    except KeyboardInterrupt:
+        print("\nProcess interrupted. Returning collected results.")
+        print(results)
+
+    # Save updated results
+    with open(cache_file, "wb") as f_cache:
+        pickle.dump({"results": results, "indices": processed_indices}, f_cache)
+
+    return results
+
+
 
 
 jinja_env = jinja2.Environment(
@@ -218,7 +251,7 @@ jinja_env = jinja2.Environment(
 _message_template = """
 <div class="message {{ role }}">
     <div class="role">
-    {{ role }} 
+    {{ role }}
     {% if variant %}<span class="variant">({{ variant }})</span>{% endif %}
     </div>
     <div class="content">

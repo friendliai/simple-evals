@@ -19,12 +19,14 @@ from .sampler.chat_completion_sampler import (
 
 
 def main(exp_name, req_url, res_dir, model = None):
+    if os.path.exists(res_dir):
+        print(f"Warning: {res_dir} exists. cached results can exists.")
     debug = False
     samplers = {
         exp_name: FriendliChatCompletionSampler(
             base_url=req_url,
             model=model,
-            max_tokens=2048,
+            max_tokens=32768,
             temperature=0.0,
         )
     }
@@ -42,7 +44,7 @@ def main(exp_name, req_url, res_dir, model = None):
                     equality_checker=equality_checker, num_examples=5 if debug else 2500
                 )
             case "gpqa":
-                return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
+                return GPQAEval(n_repeats=1 if debug else 1, num_examples=5 if debug else None, res_dir=res_dir)
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug else 250)
             case "drop":
@@ -53,7 +55,7 @@ def main(exp_name, req_url, res_dir, model = None):
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "gpqa", "humaneval"]
+        eval_name: get_evals(eval_name) for eval_name in ["gpqa"]
     }
     debug_suffix = "_DEBUG" if debug else ""
     mergekey2resultpath = {}

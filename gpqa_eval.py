@@ -6,6 +6,7 @@ https://arxiv.org/abs/2311.12022
 
 import random
 import re
+import signal
 
 import blobfile as bf
 import pandas
@@ -18,10 +19,12 @@ from .types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
 class GPQAEval(Eval):
     def __init__(
         self,
+        res_dir: str | None = None,
         n_repeats: int = 4,
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
+        self.res_dir = res_dir
         df = pandas.read_csv(
             f"{os.getcwd()}/simple-evals/dataset/gpqa_diamond.csv"
         )
@@ -34,9 +37,11 @@ class GPQAEval(Eval):
         examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
         self.examples = examples
         self.n_repeats = n_repeats
+        self.tmp_path = f"{res_dir}/gpqa_{n_repeats}_{num_examples}"
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
-        def fn(row: dict):
+        def fn(indexed_row: tuple):
+            i, row = indexed_row
             choices = [
                 row["Correct Answer"],
                 row["Incorrect Answer 1"],
@@ -70,5 +75,5 @@ class GPQAEval(Eval):
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
 
-        results = common.map_with_progress(fn, self.examples)
+        results = common.map_with_progress(fn, list(enumerate(self.examples)), cache_file=self.tmp_path)
         return common.aggregate_results(results)
