@@ -6,8 +6,7 @@ https://arxiv.org/abs/2311.12022
 
 import random
 import re
-import signal
-
+import pickle
 import blobfile as bf
 import pandas
 import os
@@ -28,16 +27,23 @@ class GPQAEval(Eval):
         df = pandas.read_csv(
             f"{os.getcwd()}/simple-evals/dataset/gpqa_diamond.csv"
         )
-        examples = [row.to_dict() for _, row in df.iterrows()]
-        rng = random.Random(0)
-        if num_examples:
-            assert n_repeats == 1, "n_repeats only supported for num_examples = None"
-            examples = rng.sample(examples, num_examples)
-        examples = examples * n_repeats
-        examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
+        self.tmp_path = f"{res_dir}/gpqa_{n_repeats}_{num_examples}"
+        tmp_example_path = f"{res_dir}/gpqa_examples_{n_repeats}_{num_examples}"
+        if os.path.exists(tmp_example_path):
+            with open(tmp_example_path, "rb") as f:
+                examples = pickle.load(f)
+        else:
+            examples = [row.to_dict() for _, row in df.iterrows()]
+            rng = random.Random(0)
+            if num_examples:
+                assert n_repeats == 1, "n_repeats only supported for num_examples = None"
+                examples = rng.sample(examples, num_examples)
+            examples = examples * n_repeats
+            examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
+            with open(tmp_example_path, "wb") as f:
+                 pickle.dump(examples, f)
         self.examples = examples
         self.n_repeats = n_repeats
-        self.tmp_path = f"{res_dir}/gpqa_{n_repeats}_{num_examples}"
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         def fn(indexed_row: tuple):
