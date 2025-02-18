@@ -182,8 +182,8 @@ def aggregate_results(
     """
     name2stats = name2stats or {}
     name2values = defaultdict(list)
-    htmls = []
-    convos = []
+    htmls = [None] * len(single_eval_results)
+    convos = [None] * len(single_eval_results)
     for single_eval_result in single_eval_results:
         if single_eval_result == None:
             continue
@@ -191,8 +191,8 @@ def aggregate_results(
             name2values[name].append(value)
         if single_eval_result.score is not None:
             name2values["score"].append(single_eval_result.score)
-        htmls.append(single_eval_result.html)
-        convos.append(single_eval_result.convo)
+        htmls[single_eval_result.idx] = single_eval_result.html
+        convos[single_eval_result.idx] = single_eval_result.convo
     final_metrics = {}
     for name, values in name2values.items():
         stats = name2stats.get(name, default_stats)
@@ -221,23 +221,25 @@ def map_with_progress(f: Callable[[Any], SingleEvalResult], xs: List[Any], num_t
     remaining_indices = [i for i in range(len(xs)) if i not in processed_indices]
     print(f"Find cached {len(processed_indices)} results from `{cache_file}`, Only run {len(remaining_indices)} samples.")
 
-    try:
-        if os.getenv("debug"):
-            for i in tqdm(remaining_indices, total=len(remaining_indices)):
-                results[i] = f(xs[i])
-                processed_indices.add(i)
-        else:
-            with ThreadPool(min(num_threads, len(remaining_indices))) as pool:
-                for i, result in enumerate(tqdm(pool.imap_unordered(f, [xs[i] for i in remaining_indices]), total=len(remaining_indices))):
-                    results[i] = result
-                    processed_indices.add(result.idx)
-    except KeyboardInterrupt:
-        print("\nProcess interrupted. Returning collected results.")
-        print(results)
+    if len(remaining_indices) == 0:
+        print(f"Find cached all results. return results.")
+    else:
+        try:
+            if os.getenv("debug"):
+                for i in tqdm(remaining_indices, total=len(remaining_indices)):
+                    results[i] = f(xs[i])
+                    processed_indices.add(i)
+            else:
+                with ThreadPool(min(num_threads, len(remaining_indices))) as pool:
+                    for i, result in enumerate(tqdm(pool.imap_unordered(f, [xs[i] for i in remaining_indices]), total=len(remaining_indices))):
+                        results[i] = result
+                        processed_indices.add(result.idx)
+        except KeyboardInterrupt:
+            print("\nProcess interrupted. Returning collected results.")
 
-    # Save updated results
-    with open(cache_file, "wb") as f_cache:
-        pickle.dump({"results": results, "indices": processed_indices}, f_cache)
+        # Save updated results
+        with open(cache_file, "wb") as f_cache:
+            pickle.dump({"results": results, "indices": processed_indices}, f_cache)
 
     return results
 

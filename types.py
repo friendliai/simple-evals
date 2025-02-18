@@ -33,8 +33,8 @@ class SingleEvalResult:
     Result of evaluating a single sample
     """
 
-    idx: int | None = None
     score: float | None
+    idx: int | None = None
     metrics: dict[str, float] = field(default_factory=dict)
     html: str | None = None
     convo: MessageList | None = None  # sampled conversation
