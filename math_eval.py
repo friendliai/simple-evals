@@ -8,7 +8,6 @@ import random
 import re
 from typing import Literal
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -33,7 +32,7 @@ class MathEval(Eval):
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
         df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
+            f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
@@ -48,18 +47,20 @@ class MathEval(Eval):
             prompt_messages = [
                 sampler._pack_message(content=QUERY_TEMPLATE.format(**row), role="user")
             ]
-            response_text = sampler(prompt_messages)
+            sampler_response = sampler(prompt_messages)
+            response_text = sampler_response.response_text
+            actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             match = re.search(ANSWER_PATTERN, response_text)
             extracted_answer = match.group(1) if match else None
             score = float(check_equality(self.equality_checker, row["Answer"], extracted_answer))
             html = common.jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt_messages,
+                prompt_messages=actual_queried_prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
                 correct_answer=row["Answer"],
                 extracted_answer=extracted_answer,
             )
-            convo = prompt_messages + [dict(content=response_text, role="assistant")]
+            convo = actual_queried_prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(html=html, score=score, convo=convo)
 
         results = common.map_with_progress(fn, self.examples)

@@ -11,7 +11,6 @@ import re
 import string
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-import blobfile as bf
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -245,9 +244,9 @@ class DropEval(Eval):
         self.test_jsonl = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         )
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.train_jsonl, "rb"), mode="rb") as f:
+        with gzip.GzipFile(fileobj=common.url_to_fileobj(self.train_jsonl, binary=True), mode="rb") as f:
             self.train_samples = list(map(json.loads, f.readlines()))
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.test_jsonl, "rb"), mode="rb") as f:
+        with gzip.GzipFile(fileobj=common.url_to_fileobj(self.test_jsonl, binary=True), mode="rb") as f:
             self.test_samples = list(map(json.loads, f.readlines()))
             if self._num_examples:
                 self.test_samples = random.Random(self.seed).sample(
@@ -281,7 +280,9 @@ class DropEval(Eval):
 Think step by step, then write a line of the form "Answer: $ANSWER" at the end of your response.
                     """
                     prompt_messages = [sampler._pack_message(content=prompt, role="user")]
-                    response_text = sampler(prompt_messages)
+                    sampler_response = sampler(prompt_messages)
+                    response_text = sampler_response.response_text
+                    actual_queried_prompt_messages = sampler_response.actual_queried_message_list
                     match = re.search(ANSWER_PATTERN, response_text)
                     extracted_answer = match.group(1) if match else response_text
                     em_score, f1_score = drop_metric(extracted_answer, correct_answers)
@@ -294,13 +295,13 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                     ]
                     score = True in matches
                     html = common.jinja_env.from_string(HTML_JINJA).render(
-                        prompt_messages=prompt_messages,
+                        prompt_messages=actual_queried_prompt_messages,
                         next_message=dict(content=extracted_answer, role="assistant"),
                         score=score,
                         correct_answer=correct_answers,
                         extracted_answer=extracted_answers,
                     )
-                    convo = prompt_messages + [dict(content=extracted_answer, role="assistant")]
+                    convo = actual_queried_prompt_messages + [dict(content=extracted_answer, role="assistant")]
                     return SingleEvalResult(
                         html=html,
                         score=score,

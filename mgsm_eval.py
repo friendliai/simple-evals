@@ -8,8 +8,6 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 import re
 from typing import Optional
 
-import blobfile as bf
-
 from . import common
 from .mmlu_eval import HTML_JINJA
 from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
@@ -109,9 +107,10 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with bf.BlobFile(fpath, "r") as f:
-        for line in f:
-            inputs, targets = line.strip().split("\t")
+    with common.url_to_fileobj(fpath, binary=True) as f:
+        for raw_line in f:
+            line = raw_line.decode("utf-8").strip()
+            inputs, targets = line.split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
             # targets = int(targets.replace(",", ""))
@@ -157,14 +156,16 @@ class MGSMEval(Eval):
             language = example["lang"]
             latin_language = "group_latin" if language in LATIN_LANGUAGES else "group_non_latin"
             correct_answer = example["targets"]
-            instructoin = LANG_TO_INSTRUCTIONS[language]
+            instruction = LANG_TO_INSTRUCTIONS[language]
             prompt_messages = [
                 sampler._pack_message(
-                    content=instructoin.format(input=example["inputs"]), role="user"
+                    content=instruction.format(input=example["inputs"]), role="user"
                 )
             ]
             try:
-                response_text = sampler(prompt_messages)
+                sampler_response = sampler(prompt_messages)
+                response_text = sampler_response.response_text
+                actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             except Exception as e:
                 response_text = ""
 
@@ -173,13 +174,13 @@ class MGSMEval(Eval):
 
             score = score_mgsm(correct_answer, extracted_answer)
             html = common.jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt_messages,
+                prompt_messages=actual_queried_prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
                 correct_answer=correct_answer,
-                extracted_answer=extracted_answer,
+                extracted_answer=extracted_answer or None,
             )
-            convo = prompt_messages + [dict(content=response_text, role="assistant")]
+            convo = actual_queried_prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(
                 html=html,
                 score=score,

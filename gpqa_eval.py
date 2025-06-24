@@ -7,7 +7,6 @@ https://arxiv.org/abs/2311.12022
 import random
 import re
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -23,12 +22,12 @@ class GPQAEval(Eval):
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
         df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
+            f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
+        rng = random.Random(0)
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported for num_examples = None"
-            rng = random.Random(0)
             examples = rng.sample(examples, num_examples)
         examples = examples * n_repeats
         examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
@@ -54,18 +53,20 @@ class GPQAEval(Eval):
                     content=format_multichoice_question(choices_dict), role="user"
                 )
             ]
-            response_text = sampler(prompt_messages)
+            sampler_response = sampler(prompt_messages)
+            response_text = sampler_response.response_text
+            actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
             extracted_answer = match.group(1) if match else None
             score = 1.0 if extracted_answer == correct_answer else 0.0
             html = common.jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt_messages,
+                prompt_messages=actual_queried_prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
                 correct_answer=correct_answer,
                 extracted_answer=extracted_answer,
             )
-            convo = prompt_messages + [dict(content=response_text, role="assistant")]
+            convo = actual_queried_prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
