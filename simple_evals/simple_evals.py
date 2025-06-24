@@ -2,6 +2,7 @@ import argparse
 import json
 import subprocess
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -239,7 +240,11 @@ def main():
         "claude-3-haiku-20240307": ClaudeCompletionSampler(
             model="claude-3-haiku-20240307",
         ),
-        "custom": ChatCompletionSampler(model="custom"),
+        "custom": ChatCompletionSampler(
+            model="custom",
+            temperature=0.0,
+            max_tokens=2048,
+        ),
     }
 
     if args.list_models:
