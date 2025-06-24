@@ -1,14 +1,15 @@
 """
 This script evaluates the performance of a model on the HealthBench dataset.
 
-To run HealthBench, HealthBench Consensus, or HealthBench Hard, use the simple-evals script:
-- `python -m simple-evals.simple_evals --eval=healthbench --model=gpt-4.1`
-- `python -m simple-evals.simple_evals --eval=healthbench_consensus --model=gpt-4.1`
-- `python -m simple-evals.simple_evals --eval=healthbench_hard --model=gpt-4.1`
+To run HealthBench, HealthBench Consensus, or HealthBench Hard, use the
+`simpleeval` command:
+ - `simpleeval --eval=healthbench --model=gpt-4.1`
+ - `simpleeval --eval=healthbench_consensus --model=gpt-4.1`
+ - `simpleeval --eval=healthbench_hard --model=gpt-4.1`
 
 You can also evaluate physician ideal completions or reference completions against the HealthBench rubrics. To do so, run the following command:
-- To evaluate physician ideal completions: `python -m simple-evals.healthbench_eval --run_mode=physician_completions`
-- To evaluate reference model completions used by physicians: `python -m simple-evals.healthbench_eval --run_mode=physician_completion_references`
+ - To evaluate physician ideal completions: `python -m simple_evals.healthbench_eval --run_mode=physician_completions`
+ - To evaluate reference model completions used by physicians: `python -m simple_evals.healthbench_eval --run_mode=physician_completion_references`
 """
 
 import argparse

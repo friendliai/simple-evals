@@ -2,8 +2,9 @@
 This script evaluates a grader model on grading HealthBench rubrics. It effectively
 evaluates the evaluator against physician opinion, so we call it a meta-evaluation.
 
-To run, use the following command (working directory should contain simple-evals folder):
-`python -m simple-evals.simple_evals  --eval=healthbench_meta --model=gpt-4.1`
+To run, use the following command (working directory should contain the
+`simple_evals` package):
+`simpleeval --eval=healthbench_meta --model=gpt-4.1`
 """
 
 import json

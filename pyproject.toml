@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simpleevals"
+version = "0.1.0"
+description = "Lightweight evaluation suite"
+readme = "README.md"
+authors = [{name="OpenAI"}]
+license = {file = "LICENSE"}
+dependencies = [
+    "pandas",
+    "numpy",
+    "requests",
+    "jinja2",
+    "blobfile",
+    "scipy",
+    "openai",
+    "anthropic",
+]
+
+[project.scripts]
+simpleeval = "simple_evals.simple_evals:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simple_evals*"]
+
