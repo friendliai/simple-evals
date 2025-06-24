@@ -7,6 +7,7 @@ https://arxiv.org/abs/2103.03874
 import random
 import re
 from typing import Literal
+from pathlib import Path
 
 import pandas
 
@@ -31,9 +32,13 @@ class MathEval(Eval):
         n_repeats: int = 16,
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
-        df = pandas.read_csv(
-            f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
-        )
+        downloaded = Path(__file__).parent / "dataset" / "math_test.csv"
+        if downloaded.exists():
+            df = pandas.read_csv(downloaded)
+        else:
+            df = pandas.read_csv(
+                f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
+            )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported for num_examples = None"
