@@ -6,6 +6,7 @@ https://arxiv.org/abs/2009.03300
 
 import random
 import re
+from pathlib import Path
 
 import pandas
 
@@ -87,6 +88,9 @@ class MMLUEval(Eval):
             url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
         else:
             url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
+            downloaded = Path(__file__).parent / "dataset" / "mmlu.csv"
+            if downloaded.exists():
+                url = str(downloaded)
         df = pandas.read_csv(url)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:

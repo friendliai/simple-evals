@@ -4,6 +4,7 @@ David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe P
 https://arxiv.org/abs/2311.12022
 """
 
+from pathlib import Path
 import random
 import re
 
@@ -21,9 +22,13 @@ class GPQAEval(Eval):
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
-        df = pandas.read_csv(
-            f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
-        )
+        downloaded = Path(__file__).parent / "dataset" / "gpqa_diamond.csv"
+        if downloaded.exists():
+            df = pandas.read_csv(downloaded)
+        else:
+            df = pandas.read_csv(
+                f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
+            )
         examples = [row.to_dict() for _, row in df.iterrows()]
         rng = random.Random(0)
         if num_examples:

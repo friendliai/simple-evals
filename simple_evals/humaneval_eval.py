@@ -7,6 +7,7 @@ https://arxiv.org/abs/2107.03374 https://github.com/openai/human-eval/
 import random
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 from human_eval.data import read_problems
 from human_eval.evaluation import estimate_pass_at_k
@@ -52,7 +53,8 @@ class HumanEval(Eval):
         timeout: int = 120,
     ):
         self.seed = 0
-        self.examples = read_problems()
+        downloaded = Path(__file__).parent / "dataset" / "HumanEval.jsonl.gz"
+        self.examples = read_problems() if not downloaded.exists() else read_problems(downloaded)
         self.examples = list(self.examples.values())
 
         self._num_examples = num_examples
