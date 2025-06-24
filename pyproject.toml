@@ -18,6 +18,8 @@ dependencies = [
     "scipy",
     "openai",
     "anthropic",
+    "human-eval",
+    "sympy",
 ]
 
 [project.scripts]
