@@ -20,6 +20,7 @@ dependencies = [
     "anthropic",
     "human-eval",
     "sympy",
+    "tabulate",
 ]
 
 [project.scripts]
